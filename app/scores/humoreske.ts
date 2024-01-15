@@ -12,7 +12,12 @@ type Note = {
   pitch: string;
   duration: number;
   offset: number;
+  string?: ViolinString;
+  finger?: number;
+  flageolet?: boolean;
 };
+
+export type ViolinString = "G" | "D" | "A" | "E";
 
 export const score: Score = {
   title: "Humoreske",
