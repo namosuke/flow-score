@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { ViolinString, score } from "./scores/humoreske";
+import Image from "next/image";
 
 function pitchToNoteNumber(pitch: string) {
   const keys = [
@@ -79,24 +80,68 @@ export default function Home() {
   >("unstarted");
 
   const [time, setTime] = useState(0);
+  const endTime = useMemo(
+    () => score.measures.length * score.timeSignature * timeExtend,
+    []
+  );
+  const [seekTime, setSeekTime] = useState(0);
 
   useEffect(() => {
     if (playingStatus === "playing") {
       const loop = setInterval(() => {
-        const time = audioCtx?.currentTime || 0;
+        const time = audioCtx?.currentTime ?? 0;
         setTime(time);
-        if (time > score.measures.length * score.timeSignature * timeExtend) {
+        if (seekTime + time > endTime) {
           setPlayingStatus("unstarted");
           audioCtx?.close();
         }
       }, 16);
       return () => clearInterval(loop);
     }
-  }, [playingStatus, audioCtx]);
+  }, [playingStatus, audioCtx, endTime, seekTime]);
 
   const [gainNode, setGainNode] = useState<GainNode>();
   const [mute, setMute] = useState(false);
   const [volume, setVolume] = useState(0.1);
+
+  const play = useCallback(
+    (seekTime: number) => {
+      setTime(0);
+      setSeekTime(seekTime);
+      setPlayingStatus("playing");
+      const audioCtx = new AudioContext();
+      setAudioCtx(audioCtx);
+      const gainNode = new GainNode(audioCtx, {
+        gain: mute ? 0 : volume,
+      });
+      setGainNode(gainNode);
+      score.measures.forEach((measure, measureIndex) => {
+        const measureOffset = measureIndex * score.timeSignature;
+        measure.notes.forEach((note) => {
+          const oscillator = new OscillatorNode(audioCtx, {
+            type: "square",
+            frequency: pitchToFrequency(note.pitch),
+          });
+          oscillator.connect(gainNode).connect(audioCtx.destination);
+          const startTime =
+            (measureOffset + note.offset) * timeExtend - seekTime;
+          const stopTime =
+            (measureOffset + note.offset + note.duration) * timeExtend -
+            seekTime;
+          if (
+            startTime >= 0 &&
+            startTime <= endTime &&
+            stopTime >= 0 &&
+            stopTime <= endTime
+          ) {
+            oscillator.start(startTime);
+            oscillator.stop(stopTime);
+          }
+        });
+      });
+    },
+    [mute, volume, endTime]
+  );
 
   return (
     <div>
@@ -104,33 +149,7 @@ export default function Home() {
         {playingStatus === "unstarted" && (
           <button
             className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg m-3"
-            onClick={() => {
-              setPlayingStatus("playing");
-              const audioCtx = new AudioContext();
-              setAudioCtx(audioCtx);
-              const time = audioCtx.currentTime;
-              const gainNode = new GainNode(audioCtx, {
-                gain: mute ? 0 : volume,
-              });
-              setGainNode(gainNode);
-              score.measures.forEach((measure, measureIndex) => {
-                const measureOffset = measureIndex * score.timeSignature;
-                measure.notes.forEach((note) => {
-                  const oscillator = new OscillatorNode(audioCtx, {
-                    type: "square",
-                    frequency: pitchToFrequency(note.pitch),
-                  });
-                  oscillator.connect(gainNode).connect(audioCtx.destination);
-                  oscillator.start(
-                    time + (measureOffset + note.offset) * timeExtend
-                  );
-                  oscillator.stop(
-                    time +
-                      (measureOffset + note.offset + note.duration) * timeExtend
-                  );
-                });
-              });
-            }}
+            onClick={() => play(0)}
           >
             再生
           </button>
@@ -163,6 +182,7 @@ export default function Home() {
             onClick={() => {
               setPlayingStatus("unstarted");
               setTime(0);
+              setSeekTime(0);
               audioCtx?.close();
             }}
           >
@@ -180,9 +200,32 @@ export default function Home() {
         >
           {mute ? "ミュート解除" : "ミュート"}
         </button>
+        <button
+          className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg m-3"
+          onClick={() => {
+            play(Math.max(seekTime + time - 5, 0));
+          }}
+        >
+          5秒戻す
+        </button>
+        <button
+          className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg m-3"
+          onClick={() => {
+            play(Math.min(seekTime + time + 5, endTime));
+          }}
+        >
+          5秒進める
+        </button>
       </div>
       <div className="bg-slate-100 w-full h-[500px] relative overflow-hidden">
-        <div className="w-[200px] h-full absolute border-r-2 border-slate-400" />
+        <Image
+          src={"/指板.png"}
+          alt="指板"
+          width={1351}
+          height={2664}
+          className="h-[600px] w-auto absolute opacity-30 top-[-150px] left-[48px]"
+          priority
+        />
         {["0", "1", "", "3", "", "5", "", "", "", ""].map((label, index) => (
           <div
             key={index}
@@ -205,38 +248,53 @@ export default function Home() {
         ))}
         {score.measures.map((measure, measureIndex) => {
           const measureOffset = measureIndex * score.timeSignature;
-          return measure.notes.map((note, noteIndex) => {
-            const string = note.string ?? getDefaultString(note.pitch);
-            return (
+          return (
+            <React.Fragment key={measureIndex}>
               <div
-                key={noteIndex}
-                className="h-[50px] absolute top-0 left-[200px] flex items-center"
+                className="w-0 h-full absolute border-r-2 border-slate-200"
                 style={{
-                  width: `${note.duration * rectExtend}px`,
                   transform: `translate(${
-                    (measureOffset + note.offset) * rectExtend -
-                    (time / timeExtend) * rectExtend
-                  }px, ${getFretPosition(note.pitch, string) * 25}px)`,
+                    200 +
+                    measureOffset * rectExtend -
+                    ((seekTime + time) / timeExtend) * rectExtend
+                  }px, 0px)`,
                 }}
-              >
-                <div
-                  className={`h-[25px] w-full rounded-md pl-1 flex ${
-                    string === "G"
-                      ? "bg-blue-400"
-                      : string === "D"
-                      ? "bg-orange-400"
-                      : string === "A"
-                      ? "bg-red-400"
-                      : "bg-lime-400"
-                  }`}
-                >
-                  <div className="relative right-4 w-0">{note.finger}</div>
-                  <div>{string}</div>
-                </div>
-              </div>
-            );
-          });
+              />
+              {measure.notes.map((note, noteIndex) => {
+                const string = note.string ?? getDefaultString(note.pitch);
+                return (
+                  <div
+                    key={noteIndex}
+                    className="h-[50px] absolute top-0 left-[200px] flex items-center"
+                    style={{
+                      width: `${note.duration * rectExtend}px`,
+                      transform: `translate(${
+                        (measureOffset + note.offset) * rectExtend -
+                        ((seekTime + time) / timeExtend) * rectExtend
+                      }px, ${getFretPosition(note.pitch, string) * 25}px)`,
+                    }}
+                  >
+                    <div
+                      className={`h-[25px] w-full rounded-md pl-1 flex ${
+                        string === "G"
+                          ? "bg-blue-400"
+                          : string === "D"
+                          ? "bg-orange-400"
+                          : string === "A"
+                          ? "bg-red-400"
+                          : "bg-lime-400"
+                      }`}
+                    >
+                      <div className="relative right-4 w-0">{note.finger}</div>
+                      <div>{string}</div>
+                    </div>
+                  </div>
+                );
+              })}
+            </React.Fragment>
+          );
         })}
+        <div className="w-[200px] h-full absolute border-r-2 border-red-500" />
       </div>
     </div>
   );
