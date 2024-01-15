@@ -94,6 +94,10 @@ export default function Home() {
     }
   }, [playingStatus, audioCtx]);
 
+  const [gainNode, setGainNode] = useState<GainNode>();
+  const [mute, setMute] = useState(false);
+  const [volume, setVolume] = useState(0.1);
+
   return (
     <div>
       <div>
@@ -105,7 +109,10 @@ export default function Home() {
               const audioCtx = new AudioContext();
               setAudioCtx(audioCtx);
               const time = audioCtx.currentTime;
-              const gainNode = new GainNode(audioCtx, { gain: 0.1 });
+              const gainNode = new GainNode(audioCtx, {
+                gain: mute ? 0 : volume,
+              });
+              setGainNode(gainNode);
               score.measures.forEach((measure, measureIndex) => {
                 const measureOffset = measureIndex * score.timeSignature;
                 measure.notes.forEach((note) => {
@@ -162,6 +169,17 @@ export default function Home() {
             終了
           </button>
         )}
+        <button
+          className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg m-3"
+          onClick={() => {
+            setMute(!mute);
+            if (gainNode) {
+              gainNode.gain.value = mute ? volume : 0;
+            }
+          }}
+        >
+          {mute ? "ミュート解除" : "ミュート"}
+        </button>
       </div>
       <div className="bg-slate-100 w-full h-[500px] relative overflow-hidden">
         <div className="w-[200px] h-full absolute border-r-2 border-slate-400" />
@@ -188,7 +206,7 @@ export default function Home() {
         {score.measures.map((measure, measureIndex) => {
           const measureOffset = measureIndex * score.timeSignature;
           return measure.notes.map((note, noteIndex) => {
-            const string = getDefaultString(note.pitch);
+            const string = note.string ?? getDefaultString(note.pitch);
             return (
               <div
                 key={noteIndex}
@@ -202,7 +220,7 @@ export default function Home() {
                 }}
               >
                 <div
-                  className={`h-[25px] w-full rounded-md pl-1 ${
+                  className={`h-[25px] w-full rounded-md pl-1 flex ${
                     string === "G"
                       ? "bg-blue-400"
                       : string === "D"
@@ -212,7 +230,8 @@ export default function Home() {
                       : "bg-lime-400"
                   }`}
                 >
-                  {string}
+                  <div className="relative right-4 w-0">{note.finger}</div>
+                  <div>{string}</div>
                 </div>
               </div>
             );
