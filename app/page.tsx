@@ -226,12 +226,29 @@ export default function Home() {
           className="h-[600px] w-auto absolute opacity-30 top-[-150px] left-[48px]"
           priority
         />
-        {["0", "1", "", "3", "", "5", "", "", "", ""].map((label, index) => (
+        {[
+          "0",
+          "",
+          "1",
+          "",
+          "",
+          "3",
+          "",
+          "",
+          "",
+          "5",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+        ].map((label, index) => (
           <div
             key={index}
             className="w-full h-[50px] flex items-center absolute"
             style={{
-              top: `${[0, 50, 75, 125, 175, 200, 250, 300, 325, 375][index]}px`,
+              top: `${25 * index}px`,
             }}
           >
             <div className="w-6 text-center text-slate-600">{label}</div>
@@ -240,7 +257,7 @@ export default function Home() {
                 label === "0"
                   ? "border-transparent"
                   : label === ""
-                  ? "border-slate-300"
+                  ? "border-slate-200"
                   : "border-slate-400"
               }`}
             />
@@ -262,16 +279,19 @@ export default function Home() {
               />
               {measure.notes.map((note, noteIndex) => {
                 const string = note.string ?? getDefaultString(note.pitch);
+                const offsetPx =
+                  (measureOffset + note.offset) * rectExtend -
+                  ((seekTime + time) / timeExtend) * rectExtend;
+                const durationPx = note.duration * rectExtend;
                 return (
                   <div
                     key={noteIndex}
                     className="h-[50px] absolute top-0 left-[200px] flex items-center"
                     style={{
-                      width: `${note.duration * rectExtend}px`,
-                      transform: `translate(${
-                        (measureOffset + note.offset) * rectExtend -
-                        ((seekTime + time) / timeExtend) * rectExtend
-                      }px, ${getFretPosition(note.pitch, string) * 25}px)`,
+                      width: `${durationPx}px`,
+                      transform: `translate(${offsetPx}px, ${
+                        getFretPosition(note.pitch, string) * 25
+                      }px)`,
                     }}
                   >
                     <div
@@ -283,6 +303,16 @@ export default function Home() {
                           : string === "A"
                           ? "bg-red-400"
                           : "bg-lime-400"
+                      } ${
+                        offsetPx <= 0 && offsetPx + durationPx >= 0
+                          ? string === "G"
+                            ? "bg-blue-300"
+                            : string === "D"
+                            ? "bg-orange-300"
+                            : string === "A"
+                            ? "bg-red-300"
+                            : "bg-lime-300"
+                          : ""
                       }`}
                     >
                       <div className="relative right-4 w-0">{note.finger}</div>
