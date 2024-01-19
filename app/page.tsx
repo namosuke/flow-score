@@ -331,14 +331,6 @@ export default function Home() {
                   >
                     <div
                       className={`h-[25px] w-full rounded-md pl-1 flex ${
-                        string === "G"
-                          ? "bg-blue-400"
-                          : string === "D"
-                          ? "bg-orange-400"
-                          : string === "A"
-                          ? "bg-red-400"
-                          : "bg-lime-400"
-                      } ${
                         offsetPx <= 0 && offsetPx + durationPx >= 0
                           ? string === "G"
                             ? "bg-blue-300"
@@ -347,7 +339,13 @@ export default function Home() {
                             : string === "A"
                             ? "bg-red-300"
                             : "bg-lime-300"
-                          : ""
+                          : string === "G"
+                          ? "bg-blue-400"
+                          : string === "D"
+                          ? "bg-orange-400"
+                          : string === "A"
+                          ? "bg-red-400"
+                          : "bg-lime-400"
                       }`}
                     >
                       <div className="relative right-4 w-0">{note.finger}</div>
