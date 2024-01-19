@@ -156,6 +156,31 @@ export default function Home() {
     }
   }, [playingStatus, audioCtx, endTime, seekTime, pause]);
 
+  const onPointerDown = useCallback(
+    (event: React.PointerEvent) => {
+      if (playingStatus === "playing") {
+        return;
+      }
+      const startX = event.clientX;
+      const onPointerMove = (event: PointerEvent) => {
+        const offsetX = startX - event.clientX;
+        setSeekTime(
+          Math.min(
+            Math.max(seekTime + (offsetX / rectExtend) * timeExtend, 0),
+            endTime
+          )
+        );
+      };
+      const onPointerUp = () => {
+        window.removeEventListener("pointermove", onPointerMove);
+        window.removeEventListener("pointerup", onPointerUp);
+      };
+      window.addEventListener("pointermove", onPointerMove);
+      window.addEventListener("pointerup", onPointerUp);
+    },
+    [playingStatus, seekTime, endTime]
+  );
+
   return (
     <div>
       <div className="flex">
@@ -222,7 +247,12 @@ export default function Home() {
           5秒進む
         </button>
       </div>
-      <div className="bg-slate-100 w-full h-[500px] relative overflow-hidden">
+      <div
+        className={`bg-slate-100 w-full h-[500px] relative overflow-hidden select-none ${
+          playingStatus === "paused" ? "cursor-grab active:cursor-grabbing" : ""
+        }`}
+        onPointerDown={onPointerDown}
+      >
         <Image
           src={"/指板.png"}
           alt="指板"
