@@ -3,6 +3,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { ViolinString, score } from "./scores/humoreske";
 import Image from "next/image";
+import { BackwardIcon, PauseIcon, PlayIcon, SpeakerIcon } from "./icons";
 
 function pitchToNoteNumber(pitch: string) {
   const keys = [
@@ -75,9 +76,9 @@ export default function Home() {
     };
   }, [audioCtx]);
 
-  const [playingStatus, setPlayingStatus] = useState<
-    "unstarted" | "playing" | "paused"
-  >("unstarted");
+  const [playingStatus, setPlayingStatus] = useState<"paused" | "playing">(
+    "paused"
+  );
 
   const [time, setTime] = useState(0);
   const endTime = useMemo(
@@ -85,20 +86,6 @@ export default function Home() {
     []
   );
   const [seekTime, setSeekTime] = useState(0);
-
-  useEffect(() => {
-    if (playingStatus === "playing") {
-      const loop = setInterval(() => {
-        const time = audioCtx?.currentTime ?? 0;
-        setTime(time);
-        if (seekTime + time > endTime) {
-          setPlayingStatus("unstarted");
-          audioCtx?.close();
-        }
-      }, 16);
-      return () => clearInterval(loop);
-    }
-  }, [playingStatus, audioCtx, endTime, seekTime]);
 
   const [gainNode, setGainNode] = useState<GainNode>();
   const [mute, setMute] = useState(false);
@@ -136,6 +123,9 @@ export default function Home() {
           ) {
             oscillator.start(startTime);
             oscillator.stop(stopTime);
+          } else if (startTime < 0 && stopTime > 0) {
+            oscillator.start(0);
+            oscillator.stop(stopTime);
           }
         });
       });
@@ -143,50 +133,57 @@ export default function Home() {
     [mute, volume, endTime]
   );
 
+  const pause = useCallback(
+    (seekTime: number) => {
+      setPlayingStatus("paused");
+      setTime(0);
+      setSeekTime(seekTime);
+      audioCtx?.close();
+    },
+    [audioCtx]
+  );
+
+  useEffect(() => {
+    if (playingStatus === "playing") {
+      const loop = setInterval(() => {
+        const time = audioCtx?.currentTime ?? 0;
+        setTime(time);
+        if (seekTime + time > endTime) {
+          pause(endTime);
+        }
+      }, 16);
+      return () => clearInterval(loop);
+    }
+  }, [playingStatus, audioCtx, endTime, seekTime, pause]);
+
   return (
     <div>
-      <div>
-        {playingStatus === "unstarted" && (
+      <div className="flex">
+        <button
+          className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg m-3"
+          onClick={() => {
+            if (playingStatus === "playing") {
+              play(0);
+            } else {
+              pause(0);
+            }
+          }}
+        >
+          <BackwardIcon />
+        </button>
+        {playingStatus === "paused" ? (
           <button
             className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg m-3"
-            onClick={() => play(0)}
+            onClick={() => play(seekTime)}
           >
-            再生
+            <PlayIcon />
           </button>
-        )}
-        {playingStatus === "playing" && (
+        ) : (
           <button
             className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg m-3"
-            onClick={() => {
-              setPlayingStatus("paused");
-              audioCtx?.suspend();
-            }}
+            onClick={() => pause(seekTime + time)}
           >
-            一時停止
-          </button>
-        )}
-        {playingStatus === "paused" && (
-          <button
-            className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg m-3"
-            onClick={() => {
-              setPlayingStatus("playing");
-              audioCtx?.resume();
-            }}
-          >
-            再開
-          </button>
-        )}
-        {(playingStatus === "playing" || playingStatus === "paused") && (
-          <button
-            className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg m-3"
-            onClick={() => {
-              setPlayingStatus("unstarted");
-              setTime(0);
-              setSeekTime(0);
-              audioCtx?.close();
-            }}
-          >
-            終了
+            <PauseIcon />
           </button>
         )}
         <button
@@ -198,23 +195,31 @@ export default function Home() {
             }
           }}
         >
-          {mute ? "ミュート解除" : "ミュート"}
+          <SpeakerIcon isMuted={mute} />
         </button>
         <button
           className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg m-3"
           onClick={() => {
-            play(Math.max(seekTime + time - 5, 0));
+            if (playingStatus === "playing") {
+              play(Math.max(seekTime + time - 5, 0));
+            } else {
+              pause(Math.max(seekTime + time - 5, 0));
+            }
           }}
         >
-          5秒戻す
+          5秒戻る
         </button>
         <button
           className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg m-3"
           onClick={() => {
-            play(Math.min(seekTime + time + 5, endTime));
+            if (playingStatus === "playing") {
+              play(Math.min(seekTime + time + 5, endTime));
+            } else {
+              pause(Math.min(seekTime + time + 5, endTime));
+            }
           }}
         >
-          5秒進める
+          5秒進む
         </button>
       </div>
       <div className="bg-slate-100 w-full h-[500px] relative overflow-hidden">
