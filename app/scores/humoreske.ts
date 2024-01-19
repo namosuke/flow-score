@@ -26,7 +26,14 @@ export const score: Score = {
     {
       notes: [
         { pitch: "B3", duration: 1 / 128, offset: 0, finger: 2 },
-        { pitch: "G4", duration: 1 / 16 - 1 / 128, offset: 1 / 128, finger: 1 },
+        {
+          pitch: "G4",
+          duration: 1 / 16 - 1 / 128,
+          offset: 1 / 128,
+          finger: 4,
+          string: "G",
+          flageolet: true,
+        },
         {
           pitch: "A4",
           duration: 1 / 32,
@@ -88,6 +95,7 @@ export const score: Score = {
           offset: 2 / 16,
           string: "A",
           finger: 4,
+          flageolet: true,
         },
         {
           pitch: "G5",
@@ -109,6 +117,7 @@ export const score: Score = {
           offset: 1 / 4 + 3 / 32,
           string: "A",
           finger: 4,
+          flageolet: true,
         },
         {
           pitch: "G5",
@@ -255,6 +264,7 @@ export const score: Score = {
           offset: 2 / 16,
           string: "A",
           finger: 4,
+          flageolet: true,
         },
         {
           pitch: "G5",
@@ -276,6 +286,7 @@ export const score: Score = {
           offset: 1 / 4 + 3 / 32,
           string: "A",
           finger: 4,
+          flageolet: true,
         },
         {
           pitch: "G5",
@@ -324,12 +335,20 @@ export const score: Score = {
           offset: 1 / 4 + 1 / 8,
           string: "D",
           finger: 4,
+          flageolet: true,
         },
       ],
     },
     {
       notes: [
-        { pitch: "G4", duration: 3 / 8, offset: 0, string: "G", finger: 4 },
+        {
+          pitch: "G4",
+          duration: 3 / 8,
+          offset: 0,
+          string: "G",
+          finger: 4,
+          flageolet: true,
+        },
       ],
     },
     {
@@ -835,6 +854,7 @@ export const score: Score = {
           offset: 2 / 16,
           string: "A",
           finger: 4,
+          flageolet: true,
         },
         {
           pitch: "G5",
@@ -856,6 +876,7 @@ export const score: Score = {
           offset: 1 / 4 + 3 / 32,
           string: "A",
           finger: 4,
+          flageolet: true,
         },
         {
           pitch: "G5",
@@ -1002,6 +1023,7 @@ export const score: Score = {
           offset: 2 / 16,
           string: "A",
           finger: 4,
+          flageolet: true,
         },
         {
           pitch: "G5",
@@ -1023,6 +1045,7 @@ export const score: Score = {
           offset: 1 / 4 + 3 / 32,
           string: "A",
           finger: 4,
+          flageolet: true,
         },
         {
           pitch: "G5",

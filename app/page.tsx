@@ -330,15 +330,31 @@ export default function Home() {
                     }}
                   >
                     <div
-                      className={`h-[25px] w-full rounded-md pl-1 flex ${
+                      className={`h-[25px] w-full rounded-md pl-1 flex items-center ${
                         offsetPx <= 0 && offsetPx + durationPx >= 0
-                          ? string === "G"
+                          ? note.finger === 0 || note.flageolet
+                            ? string === "G"
+                              ? "border-4 border-blue-300"
+                              : string === "D"
+                              ? "border-4 border-orange-300"
+                              : string === "A"
+                              ? "border-4 border-red-300"
+                              : "border-4 border-lime-300"
+                            : string === "G"
                             ? "bg-blue-300"
                             : string === "D"
                             ? "bg-orange-300"
                             : string === "A"
                             ? "bg-red-300"
                             : "bg-lime-300"
+                          : note.finger === 0 || note.flageolet
+                          ? string === "G"
+                            ? "border-4 border-blue-400"
+                            : string === "D"
+                            ? "border-4 border-orange-400"
+                            : string === "A"
+                            ? "border-4 border-red-400"
+                            : "border-4 border-lime-400"
                           : string === "G"
                           ? "bg-blue-400"
                           : string === "D"
@@ -348,7 +364,15 @@ export default function Home() {
                           : "bg-lime-400"
                       }`}
                     >
-                      <div className="relative right-4 w-0">{note.finger}</div>
+                      <div
+                        className={`relative w-0 ${
+                          note.finger === 0 || note.flageolet
+                            ? "right-5"
+                            : "right-4"
+                        }`}
+                      >
+                        {note.finger}
+                      </div>
                       <div>{string}</div>
                     </div>
                   </div>
