@@ -68,7 +68,7 @@ function getFretPosition(pitch: string, string: ViolinString) {
 
 const timeExtend = 6.5;
 const rectExtend = 1000;
-const leftMargin = 200;
+const leftMargin = 250;
 const topMargin = 50;
 
 export default function Home() {
@@ -403,6 +403,77 @@ export default function Home() {
           className="h-full absolute border-r-2 border-red-500"
           style={{ width: `${leftMargin}px` }}
         />
+        <div className="h-full w-[110px] absolute bg-gray-800 left-[40px] px-[5px]">
+          {["G", "D", "A", "E"].map((string, index) => (
+            <div
+              key={string}
+              className={`h-full absolute -translate-x-1/2 ${
+                string === "G"
+                  ? "bg-blue-400"
+                  : string === "D"
+                  ? "bg-amber-400"
+                  : string === "A"
+                  ? "bg-red-400"
+                  : "bg-lime-400"
+              }`}
+              style={{
+                left: `${17.5 + index * 25}px`,
+                width: `${
+                  score.measures.some((measure, measureIndex) => {
+                    const measureOffset = measureIndex * score.timeSignature;
+                    return measure.notes.some(
+                      (note) =>
+                        (note.string ?? getDefaultString(note.pitch)) ===
+                          string &&
+                        (measureOffset + note.offset) * timeExtend <=
+                          seekTime + time &&
+                        (measureOffset + note.offset + note.duration) *
+                          timeExtend >=
+                          seekTime + time
+                    );
+                  })
+                    ? 4
+                    : 1
+                }px`,
+              }}
+            />
+          ))}
+          {score.measures.map((measure, measureIndex) => {
+            const measureOffset = measureIndex * score.timeSignature;
+            return measure.notes.map((note, noteIndex) => {
+              const string = note.string ?? getDefaultString(note.pitch);
+              if (
+                (measureOffset + note.offset) * timeExtend > seekTime + time ||
+                (measureOffset + note.offset + note.duration) * timeExtend <
+                  seekTime + time
+              ) {
+                return null;
+              }
+              return (
+                <div
+                  key={`${measureIndex}-${noteIndex}`}
+                  className={`w-[25px] h-[25px] rounded-full absolute ${
+                    string === "G"
+                      ? "bg-blue-400"
+                      : string === "D"
+                      ? "bg-amber-400"
+                      : string === "A"
+                      ? "bg-red-400"
+                      : "bg-lime-400"
+                  }
+              }`}
+                  style={{
+                    transform: `translate(${
+                      12.5 + ["G", "D", "A", "E"].indexOf(string) * 25
+                    }px, ${
+                      topMargin + 25 + getFretPosition(note.pitch, string) * 25
+                    }px) translate(-50%, -50%)`,
+                  }}
+                ></div>
+              );
+            });
+          })}
+        </div>
       </div>
     </div>
   );
