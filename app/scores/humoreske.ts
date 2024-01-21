@@ -24,6 +24,9 @@ export const score: Score = {
   timeSignature: 2 / 4,
   measures: [
     {
+      notes: [],
+    },
+    {
       notes: [
         { pitch: "B3", duration: 1 / 128, offset: 0, finger: 2 },
         {

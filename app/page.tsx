@@ -4,6 +4,7 @@ import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { ViolinString, score } from "./scores/humoreske";
 import Image from "next/image";
 import { BackwardIcon, PauseIcon, PlayIcon, SpeakerIcon } from "./icons";
+import { useWindowSize } from "./lib";
 
 function pitchToNoteNumber(pitch: string) {
   const keys = [
@@ -67,6 +68,8 @@ function getFretPosition(pitch: string, string: ViolinString) {
 
 const timeExtend = 6.5;
 const rectExtend = 1000;
+const leftMargin = 200;
+const topMargin = 50;
 
 export default function Home() {
   const [audioCtx, setAudioCtx] = useState<AudioContext>();
@@ -151,7 +154,7 @@ export default function Home() {
         if (seekTime + time > endTime) {
           pause(endTime);
         }
-      }, 16);
+      }, 16.66);
       return () => clearInterval(loop);
     }
   }, [playingStatus, audioCtx, endTime, seekTime, pause]);
@@ -180,6 +183,8 @@ export default function Home() {
     },
     [playingStatus, seekTime, endTime]
   );
+
+  const { width: windowWidth } = useWindowSize();
 
   return (
     <div>
@@ -249,7 +254,9 @@ export default function Home() {
       </div>
       <div
         className={`bg-slate-100 w-full h-[500px] relative overflow-hidden select-none ${
-          playingStatus === "paused" ? "cursor-grab active:cursor-grabbing" : ""
+          playingStatus === "paused"
+            ? "cursor-grab active:cursor-grabbing touch-none"
+            : ""
         }`}
         onPointerDown={onPointerDown}
       >
@@ -258,7 +265,11 @@ export default function Home() {
           alt="指板"
           width={1351}
           height={2664}
-          className="h-[600px] w-auto absolute opacity-30 top-[-150px] left-[48px]"
+          className="h-[600px] w-auto absolute opacity-30"
+          style={{
+            top: `${topMargin - 150}px`,
+            left: "-50px",
+          }}
           priority
         />
         {[
@@ -283,7 +294,7 @@ export default function Home() {
             key={index}
             className="w-full h-[50px] flex items-center absolute"
             style={{
-              top: `${25 * index}px`,
+              top: `${topMargin + 25 * index}px`,
             }}
           >
             <div className="w-6 text-center text-slate-600">{label}</div>
@@ -306,7 +317,7 @@ export default function Home() {
                 className="w-0 h-full absolute border-r-2 border-slate-200"
                 style={{
                   transform: `translate(${
-                    200 +
+                    leftMargin +
                     measureOffset * rectExtend -
                     ((seekTime + time) / timeExtend) * rectExtend
                   }px, 0px)`,
@@ -318,14 +329,21 @@ export default function Home() {
                   (measureOffset + note.offset) * rectExtend -
                   ((seekTime + time) / timeExtend) * rectExtend;
                 const durationPx = note.duration * rectExtend;
+                if (
+                  offsetPx + durationPx < -(leftMargin + 20) ||
+                  offsetPx > windowWidth - (leftMargin - 20)
+                ) {
+                  return null;
+                }
                 return (
                   <div
                     key={noteIndex}
-                    className="h-[50px] absolute top-0 left-[200px] flex items-center"
+                    className="h-[50px] absolute top-0 flex items-center"
                     style={{
+                      left: `${leftMargin}px`,
                       width: `${durationPx}px`,
                       transform: `translate(${offsetPx}px, ${
-                        getFretPosition(note.pitch, string) * 25
+                        topMargin + getFretPosition(note.pitch, string) * 25
                       }px)`,
                     }}
                   >
@@ -336,14 +354,14 @@ export default function Home() {
                             ? string === "G"
                               ? "border-4 border-blue-300"
                               : string === "D"
-                              ? "border-4 border-orange-300"
+                              ? "border-4 border-amber-300"
                               : string === "A"
                               ? "border-4 border-red-300"
                               : "border-4 border-lime-300"
                             : string === "G"
                             ? "bg-blue-300"
                             : string === "D"
-                            ? "bg-orange-300"
+                            ? "bg-amber-300"
                             : string === "A"
                             ? "bg-red-300"
                             : "bg-lime-300"
@@ -351,14 +369,14 @@ export default function Home() {
                           ? string === "G"
                             ? "border-4 border-blue-400"
                             : string === "D"
-                            ? "border-4 border-orange-400"
+                            ? "border-4 border-amber-400"
                             : string === "A"
                             ? "border-4 border-red-400"
                             : "border-4 border-lime-400"
                           : string === "G"
                           ? "bg-blue-400"
                           : string === "D"
-                          ? "bg-orange-400"
+                          ? "bg-amber-400"
                           : string === "A"
                           ? "bg-red-400"
                           : "bg-lime-400"
@@ -381,7 +399,10 @@ export default function Home() {
             </React.Fragment>
           );
         })}
-        <div className="w-[200px] h-full absolute border-r-2 border-red-500" />
+        <div
+          className="h-full absolute border-r-2 border-red-500"
+          style={{ width: `${leftMargin}px` }}
+        />
       </div>
     </div>
   );
