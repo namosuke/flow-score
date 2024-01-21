@@ -70,6 +70,7 @@ const timeExtend = 6.5;
 const rectExtend = 1000;
 const leftMargin = 250;
 const topMargin = 50;
+const lookAheadTime = 0.7;
 
 export default function Home() {
   const [audioCtx, setAudioCtx] = useState<AudioContext>();
@@ -404,6 +405,42 @@ export default function Home() {
           style={{ width: `${leftMargin}px` }}
         />
         <div className="h-full w-[110px] absolute bg-gray-800 left-[40px] px-[5px]">
+          {[
+            "0",
+            "",
+            "1",
+            "",
+            "",
+            "3",
+            "",
+            "",
+            "",
+            "5",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+          ].map((label, index) => (
+            <div
+              key={index}
+              className="w-full h-[50px] flex items-center absolute left-0"
+              style={{
+                top: `${topMargin + 25 * index}px`,
+              }}
+            >
+              <div
+                className={`w-full h-0 border-t-2 ${
+                  label === "0"
+                    ? "border-transparent"
+                    : label === ""
+                    ? "border-transparent"
+                    : "border-slate-500"
+                }`}
+              />
+            </div>
+          ))}
           {["G", "D", "A", "E"].map((string, index) => (
             <div
               key={string}
@@ -432,7 +469,7 @@ export default function Home() {
                           seekTime + time
                     );
                   })
-                    ? 4
+                    ? 3
                     : 1
                 }px`,
               }}
@@ -442,24 +479,39 @@ export default function Home() {
             const measureOffset = measureIndex * score.timeSignature;
             return measure.notes.map((note, noteIndex) => {
               const string = note.string ?? getDefaultString(note.pitch);
+              const noteStart = (measureOffset + note.offset) * timeExtend;
+              const noteEnd =
+                (measureOffset + note.offset + note.duration) * timeExtend;
+              const currentTime = seekTime + time;
               if (
-                (measureOffset + note.offset) * timeExtend > seekTime + time ||
-                (measureOffset + note.offset + note.duration) * timeExtend <
-                  seekTime + time
+                noteStart - lookAheadTime > currentTime ||
+                noteEnd < currentTime
               ) {
                 return null;
               }
               return (
                 <div
                   key={`${measureIndex}-${noteIndex}`}
-                  className={`w-[25px] h-[25px] rounded-full absolute ${
-                    string === "G"
-                      ? "bg-blue-400"
+                  className={`w-[25px] h-[25px] rounded-full absolute text-center ${
+                    noteStart > currentTime
+                      ? "border-2 bg-gray-800 text-white z-0"
+                      : " text-black z-10"
+                  } ${
+                    noteStart > currentTime
+                      ? string === "G"
+                        ? "border-blue-400"
+                        : string === "D"
+                        ? "border-amber-400"
+                        : string === "A"
+                        ? "border-red-400"
+                        : "border-lime-400"
+                      : string === "G"
+                      ? "bg-blue-300"
                       : string === "D"
-                      ? "bg-amber-400"
+                      ? "bg-amber-300"
                       : string === "A"
-                      ? "bg-red-400"
-                      : "bg-lime-400"
+                      ? "bg-red-300"
+                      : "bg-lime-300"
                   }
               }`}
                   style={{
@@ -469,7 +521,36 @@ export default function Home() {
                       topMargin + 25 + getFretPosition(note.pitch, string) * 25
                     }px) translate(-50%, -50%)`,
                   }}
-                ></div>
+                >
+                  {noteStart - currentTime > 0 && (
+                    <div
+                      className={`absolute -translate-x-1/2 -translate-y-1/2 top-[10.5px] left-[10.5px] rounded-full opacity-70 ${
+                        string === "G"
+                          ? "bg-blue-400"
+                          : string === "D"
+                          ? "bg-amber-400"
+                          : string === "A"
+                          ? "bg-red-400"
+                          : "bg-lime-400"
+                      }`}
+                      style={{
+                        width: `${
+                          (1 - (noteStart - currentTime) / lookAheadTime) * 21
+                        }px`,
+                        height: `${
+                          (1 - (noteStart - currentTime) / lookAheadTime) * 21
+                        }px`,
+                      }}
+                    />
+                  )}
+                  <div
+                    className={
+                      noteStart > currentTime ? "mt-[-2px] relative" : ""
+                    }
+                  >
+                    {note.finger}
+                  </div>
+                </div>
               );
             });
           })}
