@@ -475,85 +475,84 @@ export default function Home() {
               }}
             />
           ))}
-          {score.measures.map((measure, measureIndex) => {
-            const measureOffset = measureIndex * score.timeSignature;
-            return measure.notes.map((note, noteIndex) => {
-              const string = note.string ?? getDefaultString(note.pitch);
-              const noteStart = (measureOffset + note.offset) * timeExtend;
-              const noteEnd =
-                (measureOffset + note.offset + note.duration) * timeExtend;
-              const currentTime = seekTime + time;
-              if (
-                noteStart - lookAheadTime > currentTime ||
-                noteEnd < currentTime
-              ) {
-                return null;
-              }
-              return (
-                <div
-                  key={`${measureIndex}-${noteIndex}`}
-                  className={`w-[25px] h-[25px] rounded-full absolute text-center ${
-                    noteStart > currentTime
-                      ? "border-2 bg-gray-800 text-white z-0"
-                      : " text-black z-10"
-                  } ${
-                    noteStart > currentTime
-                      ? string === "G"
+          {score.measures
+            .map((measure, measureIndex) => {
+              const measureOffset = measureIndex * score.timeSignature;
+              return measure.notes.map((note, noteIndex) => {
+                const string = note.string ?? getDefaultString(note.pitch);
+                const noteStart = (measureOffset + note.offset) * timeExtend;
+                const noteEnd =
+                  (measureOffset + note.offset + note.duration) * timeExtend;
+                const currentTime = seekTime + time;
+                if (
+                  noteStart - lookAheadTime > currentTime ||
+                  noteEnd < currentTime
+                ) {
+                  return null;
+                }
+                return (
+                  <div
+                    key={`${measureIndex}-${noteIndex}`}
+                    className={`w-[25px] h-[25px] rounded-full absolute text-center border-2 ${
+                      noteStart > currentTime
+                        ? "bg-gray-800 text-white"
+                        : `text-black ${
+                            string === "G"
+                              ? "bg-blue-300"
+                              : string === "D"
+                              ? "bg-amber-300"
+                              : string === "A"
+                              ? "bg-red-300"
+                              : "bg-lime-300"
+                          }`
+                    } ${
+                      string === "G"
                         ? "border-blue-400"
                         : string === "D"
                         ? "border-amber-400"
                         : string === "A"
                         ? "border-red-400"
                         : "border-lime-400"
-                      : string === "G"
-                      ? "bg-blue-300"
-                      : string === "D"
-                      ? "bg-amber-300"
-                      : string === "A"
-                      ? "bg-red-300"
-                      : "bg-lime-300"
-                  }
-              }`}
-                  style={{
-                    transform: `translate(${
-                      12.5 + ["G", "D", "A", "E"].indexOf(string) * 25
-                    }px, ${
-                      topMargin + 25 + getFretPosition(note.pitch, string) * 25
-                    }px) translate(-50%, -50%)`,
-                  }}
-                >
-                  {noteStart - currentTime > 0 && (
-                    <div
-                      className={`absolute -translate-x-1/2 -translate-y-1/2 top-[10.5px] left-[10.5px] rounded-full opacity-70 ${
-                        string === "G"
-                          ? "bg-blue-400"
-                          : string === "D"
-                          ? "bg-amber-400"
-                          : string === "A"
-                          ? "bg-red-400"
-                          : "bg-lime-400"
-                      }`}
-                      style={{
-                        width: `${
-                          (1 - (noteStart - currentTime) / lookAheadTime) * 21
-                        }px`,
-                        height: `${
-                          (1 - (noteStart - currentTime) / lookAheadTime) * 21
-                        }px`,
-                      }}
-                    />
-                  )}
-                  <div
-                    className={
-                      noteStart > currentTime ? "mt-[-2px] relative" : ""
                     }
+              }`}
+                    style={{
+                      transform: `translate(${
+                        12.5 + ["G", "D", "A", "E"].indexOf(string) * 25
+                      }px, ${
+                        topMargin +
+                        25 +
+                        getFretPosition(note.pitch, string) * 25
+                      }px) translate(-50%, -50%)`,
+                    }}
                   >
-                    {note.finger}
+                    {noteStart - currentTime > 0 && (
+                      <div
+                        className={`absolute -translate-x-1/2 -translate-y-1/2 top-[10.5px] left-[10.5px] rounded-full opacity-70 ${
+                          string === "G"
+                            ? "bg-blue-400"
+                            : string === "D"
+                            ? "bg-amber-400"
+                            : string === "A"
+                            ? "bg-red-400"
+                            : "bg-lime-400"
+                        }`}
+                        style={{
+                          width: `${
+                            (1 - (noteStart - currentTime) / lookAheadTime) * 21
+                          }px`,
+                          height: `${
+                            (1 - (noteStart - currentTime) / lookAheadTime) * 21
+                          }px`,
+                        }}
+                      />
+                    )}
+                    <div className="mt-[-2px] relative">{note.finger}</div>
                   </div>
-                </div>
-              );
-            });
-          })}
+                );
+              });
+            })
+            .flat()
+            .reverse()}
         </div>
       </div>
     </div>
