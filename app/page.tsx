@@ -189,6 +189,10 @@ export default function Home() {
 
   return (
     <div>
+      <div className="flex items-baseline justify-center mt-2 font-serif">
+        <div className="text-3xl mr-8">{score.title}</div>
+        <div className="text-lg">{score.composer}</div>
+      </div>
       <div className="flex">
         <button
           className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg m-3"
@@ -283,7 +287,7 @@ export default function Home() {
           "",
           "",
           "",
-          "5",
+          "",
           "",
           "",
           "",
@@ -324,6 +328,25 @@ export default function Home() {
                   }px, 0px)`,
                 }}
               />
+              {measure.positions?.map((position, positionIndex) => {
+                return (
+                  <div
+                    key={positionIndex}
+                    className="absolute italic font-serif text-xs"
+                    style={{
+                      transform: `translate(${
+                        leftMargin +
+                        (measureOffset + position.offset) * rectExtend -
+                        ((seekTime + time) / timeExtend) * rectExtend
+                      }px, ${topMargin + position.distance * 25 - 6}px)`,
+                    }}
+                  >
+                    <div>
+                      <span className="text-sm">{position.label}</span> pos.
+                    </div>
+                  </div>
+                );
+              })}
               {measure.notes.map((note, noteIndex) => {
                 const string = note.string ?? getDefaultString(note.pitch);
                 const offsetPx =
@@ -415,7 +438,7 @@ export default function Home() {
             "",
             "",
             "",
-            "5",
+            "",
             "",
             "",
             "",

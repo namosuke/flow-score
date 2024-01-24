@@ -1,11 +1,13 @@
 type Score = {
   title: string;
+  composer: string;
   timeSignature: number;
   measures: Measure[];
 };
 
 type Measure = {
   notes: Note[];
+  positions?: Position[];
 };
 
 type Note = {
@@ -19,14 +21,28 @@ type Note = {
 
 export type ViolinString = "G" | "D" | "A" | "E";
 
+type Position = {
+  /** 半音を1とした開放弦からの距離 */
+  distance: number;
+  /** 表示上のポジション番号 */
+  label: number;
+  /** ポジションの開始位置 */
+  offset: number;
+};
+
 export const score: Score = {
   title: "Humoreske",
+  composer: "Antonín Dvořák",
   timeSignature: 2 / 4,
   measures: [
     {
       notes: [],
     },
     {
+      positions: [
+        { distance: 2, label: 1, offset: 0 },
+        { distance: 5, label: 3, offset: 1 / 128 },
+      ],
       notes: [
         { pitch: "B3", duration: 1 / 128, offset: 0, finger: 2 },
         {
@@ -355,6 +371,10 @@ export const score: Score = {
       ],
     },
     {
+      positions: [
+        { distance: 2, label: 1, offset: 0 },
+        { distance: 5, label: 3, offset: 1 / 8 },
+      ],
       notes: [
         { pitch: "G3", duration: 1 / 8, offset: 0, string: "G", finger: 0 },
         { pitch: "D4", duration: 1 / 8, offset: 0, string: "D", finger: 0 },
@@ -400,6 +420,10 @@ export const score: Score = {
       ],
     },
     {
+      positions: [
+        { distance: 2, label: 1, offset: 1 / 8 },
+        { distance: 5, label: 3, offset: 3 / 8 },
+      ],
       notes: [
         { pitch: "E5", duration: 1 / 8, offset: 0, string: "E", finger: 0 },
         { pitch: "G5", duration: 1 / 8, offset: 0, string: "A", finger: 4 },
@@ -438,6 +462,10 @@ export const score: Score = {
       ],
     },
     {
+      positions: [
+        { distance: 3, label: 2, offset: 1 / 8 },
+        { distance: 2, label: 1, offset: 3 / 8 },
+      ],
       notes: [
         { pitch: "B4", duration: 1 / 8, offset: 0, string: "D", finger: 3 },
         { pitch: "D5", duration: 1 / 8, offset: 0, string: "A", finger: 1 },
@@ -544,6 +572,7 @@ export const score: Score = {
       ],
     },
     {
+      positions: [{ distance: 5, label: 3, offset: 1 / 8 }],
       notes: [
         { pitch: "G3", duration: 1 / 128, offset: 0, string: "G", finger: 0 },
         {
@@ -635,6 +664,10 @@ export const score: Score = {
       ],
     },
     {
+      positions: [
+        { distance: 2, label: 1, offset: 1 / 8 },
+        { distance: 5, label: 3, offset: 3 / 8 },
+      ],
       notes: [
         { pitch: "E5", duration: 1 / 8, offset: 0, string: "E", finger: 0 },
         { pitch: "G5", duration: 1 / 8, offset: 0, string: "A", finger: 4 },
@@ -713,6 +746,10 @@ export const score: Score = {
       ],
     },
     {
+      positions: [
+        { distance: 9, label: 5, offset: 0 },
+        { distance: 7, label: 4, offset: 2 / 8 },
+      ],
       notes: [
         { pitch: "D5", duration: 1 / 16, offset: 0, string: "D", finger: 3 },
         {
@@ -774,6 +811,7 @@ export const score: Score = {
       ],
     },
     {
+      positions: [{ distance: 5, label: 3, offset: 1 / 8 }],
       notes: [
         { pitch: "B4", duration: 1 / 8, offset: 0, string: "D", finger: 2 },
         {
@@ -1067,6 +1105,10 @@ export const score: Score = {
       ],
     },
     {
+      positions: [
+        { distance: 9, label: 5, offset: 1 / 8 },
+        { distance: 5, label: 3, offset: 15 / 32 },
+      ],
       notes: [
         { pitch: "D5", duration: 1 / 16, offset: 0, string: "A", finger: 1 },
         {
