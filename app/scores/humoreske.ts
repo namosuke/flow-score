@@ -21,7 +21,7 @@ type Note = {
 
 export type ViolinString = "G" | "D" | "A" | "E";
 
-type Position = {
+export type Position = {
   /** 半音を1とした開放弦からの距離 */
   distance: number;
   /** 表示上のポジション番号 */

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { ViolinString, score } from "./scores/humoreske";
+import { Position, ViolinString, score } from "./scores/humoreske";
 import Image from "next/image";
 import { BackwardIcon, PauseIcon, PlayIcon, SpeakerIcon } from "./icons";
 import { useWindowSize } from "./lib";
@@ -71,6 +71,7 @@ const rectExtend = 1000;
 const leftMargin = 250;
 const topMargin = 50;
 const lookAheadTime = 0.7;
+const positionLookAheadTime = 1;
 
 export default function Home() {
   const [audioCtx, setAudioCtx] = useState<AudioContext>();
@@ -186,6 +187,19 @@ export default function Home() {
   );
 
   const { width: windowWidth } = useWindowSize();
+
+  const positions = useMemo(() => {
+    let positions: Position[] = [];
+    score.measures.forEach((measure, measureIndex) => {
+      measure.positions?.forEach((position) => {
+        positions.push({
+          ...position,
+          offset: measureIndex * score.timeSignature + position.offset,
+        });
+      });
+    });
+    return positions.sort((a, b) => a.offset - b.offset);
+  }, []);
 
   return (
     <div>
@@ -498,6 +512,39 @@ export default function Home() {
               }}
             />
           ))}
+          {positions.map((position, positionIndex) => {
+            const timeDiff = position.offset * timeExtend - (seekTime + time);
+            const positionEnd =
+              positions[positionIndex + 1]?.offset ?? Infinity;
+            if (
+              positionEnd * timeExtend - (seekTime + time) < 0 ||
+              timeDiff > positionLookAheadTime
+            ) {
+              return null;
+            }
+            return (
+              <div
+                key={positionIndex}
+                className="absolute w-[110px] h-0 border-t-2 border-white left-0 top-0"
+                style={{
+                  top: `${topMargin + 25 * position.distance + 25 - 1}px`,
+                  opacity:
+                    Math.min(
+                      1 -
+                        (position.offset * timeExtend - (seekTime + time)) /
+                          positionLookAheadTime,
+                      1
+                    ) -
+                    Math.max(
+                      1 -
+                        (positionEnd * timeExtend - (seekTime + time)) /
+                          positionLookAheadTime,
+                      0
+                    ),
+                }}
+              />
+            );
+          })}
           {score.measures
             .map((measure, measureIndex) => {
               const measureOffset = measureIndex * score.timeSignature;
